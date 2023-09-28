@@ -49,6 +49,7 @@ parser.add_argument('--dump_awq', type=str, default=None,
                     help="save the awq search results")
 parser.add_argument('--load_awq', type=str, default=None,
                     help="load the awq search results")
+parser.add_argument('--save_path',type=str,default=None)
 args = parser.parse_args()
 
 max_memory = [v.split(':') for v in (args.max_memory or [])]
@@ -68,8 +69,8 @@ print("Quantization config:", q_config)
 # build model and tokenizer
 
 def build_model_and_enc(model_path):
-    if not os.path.exists(model_path):  # look into ssd
-        raise FileNotFoundError(f"{model_path} not found!")
+    # if not os.path.exists(model_path):  # look into ssd
+    #     raise FileNotFoundError(f"{model_path} not found!")
     print(f"* Building model {model_path}")
 
     # all hf model
@@ -131,7 +132,12 @@ def build_model_and_enc(model_path):
                 
                 torch.save(awq_results, args.dump_awq)
                 print("AWQ results saved at", args.dump_awq)
-                
+            
+            if args.save_path:
+                pseudo_quantize_model_weight(
+                    model, w_bit=args.w_bit, q_config=q_config
+                )
+                torch.save(model.state_dict(),args.save_path)
             exit(0)
                 
         if args.load_awq:
