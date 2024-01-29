@@ -9,7 +9,7 @@ from accelerate.utils.modeling import get_balanced_memory
 from awq.utils.parallel import auto_parallel
 from awq.quantize.pre_quant import run_awq, apply_awq
 from awq.quantize.quantizer import pseudo_quantize_model_weight, real_quantize_model_weight
-from awq.utils.lm_eval_adaptor import LMEvalAdaptor
+# from awq.utils.lm_eval_adaptor import LMEvalAdaptor
 from awq.utils.utils import simple_dispatch_model
 
 
@@ -50,6 +50,7 @@ parser.add_argument('--dump_awq', type=str, default=None,
 parser.add_argument('--load_awq', type=str, default=None,
                     help="load the awq search results")
 parser.add_argument('--save_path',type=str,default=None)
+parser.add_argument('--save_pretrained',type=str,default=None)
 args = parser.parse_args()
 
 max_memory = [v.split(':') for v in (args.max_memory or [])]
@@ -138,6 +139,8 @@ def build_model_and_enc(model_path):
                     model, w_bit=args.w_bit, q_config=q_config
                 )
                 torch.save(model.state_dict(),args.save_path)
+            if args.save_pretrained:
+                model.save_pretrained(args.save_pretrained)
             exit(0)
                 
         if args.load_awq:
@@ -167,7 +170,8 @@ def build_model_and_enc(model_path):
                     exit(0)
             else:
                 raise NotImplementedError
-            
+        if args.save_pretrained:
+            model.save_pretrained(args.save_pretrained)
         # Move the model to GPU (as much as possible) for LM evaluation
         kwargs = {"max_memory": get_balanced_memory(model, max_memory if len(max_memory) > 0 else None)}
         device_map = infer_auto_device_map(
