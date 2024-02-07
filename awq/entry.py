@@ -156,6 +156,8 @@ def build_model_and_enc(model_path):
                 pseudo_quantize_model_weight(
                     model, w_bit=args.w_bit, q_config=q_config
                 )
+                if args.save_path:
+                    torch.save(model.state_dict(),args.save_path)
             elif args.q_backend == "real":  # real quantization
                 real_quantize_model_weight(
                     model, w_bit=args.w_bit, q_config=q_config
